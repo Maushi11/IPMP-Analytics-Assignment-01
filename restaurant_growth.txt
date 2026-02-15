@@ -8,16 +8,18 @@ WITH daily_amount AS (
 
 SELECT 
     visited_on,
-    SUM(amount) OVER (
-        ORDER BY visited_on
-        ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
-    ) AS amount,
-    ROUND(
+    amount,
+    ROUND(amount / 7, 2) AS average_amount
+FROM (
+    SELECT 
+        visited_on,
         SUM(amount) OVER (
             ORDER BY visited_on
             ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
-        ) / 7, 2
-    ) AS average_amount
-FROM daily_amount
-ORDER BY visited_on
-OFFSET 6;
+        ) AS amount,
+        ROW_NUMBER() OVER (ORDER BY visited_on) AS rn
+    FROM daily_amount
+) t
+WHERE rn >= 7
+ORDER BY visited_on;
+
